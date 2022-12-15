@@ -56,6 +56,16 @@ Image Image::GetMirrorImageHorizontal(){
     return ret; 
 }
 
+Image Image::GetGrayImage(){
+    Image ret(_width, _height, 1); 
+    unsigned char * img_ret = ret.getImagePtr();
+    for (int i = 0; i < _height; i++) {
+        for (int j = 0; j < _width; j++) {
+                img_ret[i*_width + j] = 0.114 * getBlue(i*_width + j) + 0.587 * getGreen(i*_width + j)  + 0.299 * getRed(i*_width + j); 
+        }
+    }
+    return ret; 
+}
 
 Image::~Image() {
     stbi_image_free(_img_ptr);  

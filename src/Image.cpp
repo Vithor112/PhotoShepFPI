@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include "InvalidHue.hpp" 
 #include <string.h>
+#include <math.h> 
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../stb/stb_image.h"
@@ -56,12 +57,13 @@ Image Image::GetMirrorImageHorizontal(){
     return ret; 
 }
 
-Image Image::GetGrayImage(){
-    Image ret(_width, _height, 1); 
+Image Image::GetGrayImage(int desired_channels){
+    Image ret(_width, _height, desired_channels); 
     unsigned char * img_ret = ret.getImagePtr();
     for (int i = 0; i < _height; i++) {
         for (int j = 0; j < _width; j++) {
-                img_ret[i*_width + j] = 0.114 * getBlue(i*_width + j) + 0.587 * getGreen(i*_width + j)  + 0.299 * getRed(i*_width + j); 
+            for (int k = 0; k < desired_channels; k++) 
+                img_ret[(i*_width + j)*desired_channels + k] = 0.114 * getBlue(i*_width + j) + 0.587 * getGreen(i*_width + j)  + 0.299 * getRed(i*_width + j); 
         }
     }
     return ret; 
@@ -89,6 +91,53 @@ Image& Image::operator=(Image other){
     memcpy(this->_img_ptr, other.getImagePtr(),  other.getImageSize()*sizeof(unsigned char));
     return *this; 
 }   
+
+// TODO USE SMART POINTER
+int *Image::GetHistogram(){
+    int *histogram = (int *) calloc(HISTOGRAM_SIZE,sizeof(int)); 
+    for (int i = 0 ; i < _height; i++) {
+        for (int j = 0; j < _width; j++) {
+            histogram[getGray(i*_width +j)]++; 
+        }
+    }
+    return histogram; 
+}
+
+Image Image::quantizeImage(int n){
+    if (!IsMonochromatic()) {
+        throw InvalidHue("Image is not Monochromatic to quantize"); 
+    }
+    Image ret = *this; 
+    int *histogram = GetHistogram(); 
+    int t1 = -1, t2 = -1; 
+    for (int i = 0 ;  i < HISTOGRAM_SIZE; i++){
+        if (t1 == -1 && histogram[i] != 0) t1 = i; 
+        if (t2 == -1 && histogram[HISTOGRAM_SIZE - i  - 1] != 0) t2 = HISTOGRAM_SIZE - i  - 1; 
+        if (t1 != -1 && t2 != -1)  break;
+    }
+    int tam_int = t2 - t1 + 1;
+    if (n >= tam_int) return *this; 
+    double tb =  (double) n/tam_int;
+    int count = 0;
+    for (int i = t1; i <= t2; i++) {
+        if (histogram[i] != 0) {
+            histogram[i] = round(((double)2*t1-1.0+tb*count+tb*(count+1))/2);
+            count++; 
+        }
+    }
+    for (int i = 0 ; i < _height; i++) {
+        for (int j = 0; j < _width; j++) {
+            ret.getGray(i*_width +j) = histogram[ret.getGray(i*_width +j)]; 
+        }
+    }
+
+    return ret; 
+
+}
+
+bool Image::IsMonochromatic(){
+    return _channels < 3; 
+}
 
 bool Image::SavePNGImg(std::string name){
     return !stbi_write_png(name.append(".png").c_str(), _width, _height, _channels, _img_ptr, _width * _channels);

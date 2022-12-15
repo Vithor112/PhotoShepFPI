@@ -2,6 +2,7 @@
 
 #include <string> 
 
+#define HISTOGRAM_SIZE 256 
 
 class Image {
     public:
@@ -27,7 +28,10 @@ class Image {
 
         Image GetMirrorImageVertical();
         Image GetMirrorImageHorizontal();
-        Image GetGrayImage(); 
+        Image GetGrayImage(int desired_channels); 
+        int *GetHistogram(); 
+        bool IsMonochromatic();
+        Image quantizeImage(int colors); 
         
     private:
         int _width, _height, _channels, _orig_channels;

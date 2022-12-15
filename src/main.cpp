@@ -5,6 +5,9 @@
 
 int main(void) {
     Image x("sky.jpeg"); 
-    Image y = x.GetGrayImage();
-    y.SaveJPEGImg("gray", 100); 
+    for (int i = 0; i < 50; i++) {
+        Image y = x.GetGrayImage(1).quantizeImage(i); 
+        y.SaveJPEGImg(std::to_string(i), 100); 
+    }
+
 }

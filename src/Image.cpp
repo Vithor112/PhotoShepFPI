@@ -26,6 +26,37 @@ Image::Image(std::string name, int channels){
     }
 }
 
+Image::Image(int width, int height, int channels){
+    this->_width = width;
+    this->_height = height;
+    this->_channels = channels; 
+    this->_orig_channels = channels; 
+    this->_img_ptr = (unsigned char *) malloc(sizeof(unsigned char)*getImageSize());
+}
+
+Image Image::GetMirrorImageVertical(){
+    Image ret(_width, _height, _channels); 
+    unsigned char * img_ret = ret.getImagePtr();
+    for (int i = 0; i < _height; i++) {
+        for (int j = 0; j < _width; j++) {
+            for (int k = 0; k < _channels; k++) {
+                img_ret[i*_width*_channels + j*_channels + k] = _img_ptr[i*_width*_channels + (_width - j - 1)*_channels + k];
+            }
+        }
+    }
+    return ret; 
+}
+
+Image Image::GetMirrorImageHorizontal(){
+    Image ret(_width, _height, _channels); 
+    unsigned char * img_ret = ret.getImagePtr();
+    for (int i = 0; i < _height; i++) {
+        memcpy(img_ret + i*_width*_channels, _img_ptr + (_height-i - 1)*_width*_channels, sizeof(unsigned char) * _width * _channels);
+    }
+    return ret; 
+}
+
+
 Image::~Image() {
     stbi_image_free(_img_ptr);  
 }
@@ -39,7 +70,7 @@ Image::Image(Image &other){
     memcpy(this->_img_ptr, other.getImagePtr(),  other.getImageSize()*sizeof(unsigned char));
 }
 
-Image& Image::operator=(Image& other){
+Image& Image::operator=(Image other){
     this->_channels = other.getChannels();
     this->_width = other.getWidth();
     this->_height = other.getHeight();
@@ -54,7 +85,7 @@ bool Image::SavePNGImg(std::string name){
 } 
 
 bool Image::SaveJPEGImg(std::string name, int quality){
-    return !stbi_write_jpg("sky2.jpeg", _width, _height, _channels, _img_ptr, quality);
+    return !stbi_write_jpg(name.append(".jpeg").c_str(), _width, _height, _channels, _img_ptr, quality);
 }
 
 uint8_t &Image::getRed(int index){
@@ -117,6 +148,6 @@ size_t Image::getImageDimensions(){
     return _width * _height; 
 }
         
-const unsigned char *Image::getImagePtr(){
+unsigned char *Image::getImagePtr(){
     return _img_ptr; 
 }

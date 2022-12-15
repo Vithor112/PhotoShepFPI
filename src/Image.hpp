@@ -7,7 +7,8 @@ class Image {
     public:
         Image(std::string name);
         Image(std::string name, int channels);
-        Image& operator=(Image& other);   
+        Image(int width, int height, int channels); 
+        Image& operator=(Image other);   
         ~Image(); 
         Image(Image &ex); 
         bool SavePNGImg(std::string name); 
@@ -22,7 +23,12 @@ class Image {
         int getOrigChannels(); 
         size_t getImageSize(); 
         size_t getImageDimensions();
-        const unsigned char *getImagePtr(); 
+        unsigned char *getImagePtr(); 
+
+        Image GetMirrorImageVertical();
+        Image GetMirrorImageHorizontal();
+        Image GetGrayImage(); 
+        
     private:
         int _width, _height, _channels, _orig_channels;
         unsigned char *_img_ptr;

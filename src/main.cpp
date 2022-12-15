@@ -4,4 +4,6 @@
 
 
 int main(void) {
+    Image x("sky.jpeg"); 
+
 }

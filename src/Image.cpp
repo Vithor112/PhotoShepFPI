@@ -104,8 +104,9 @@ int *Image::GetHistogram(){
 }
 
 Image Image::quantizeImage(int n){
+    if (!n) throw std::invalid_argument("quantizeImage: N should not be zero"); 
     if (!IsMonochromatic()) {
-        throw InvalidHue("Image is not Monochromatic to quantize"); 
+        throw InvalidHue("quantizeImage: Image is not Monochromatic to quantize"); 
     }
     Image ret = *this; 
     int *histogram = GetHistogram(); 
@@ -117,17 +118,14 @@ Image Image::quantizeImage(int n){
     }
     int tam_int = t2 - t1 + 1;
     if (n >= tam_int) return *this; 
-    double tb =  (double) n/tam_int;
-    int count = 0;
-    for (int i = t1; i <= t2; i++) {
-        if (histogram[i] != 0) {
-            histogram[i] = round(((double)2*t1-1.0+tb*count+tb*(count+1))/2);
-            count++; 
-        }
-    }
+    double tb =  (double) tam_int/n;
+    double interval = t1 - 0.5;
     for (int i = 0 ; i < _height; i++) {
         for (int j = 0; j < _width; j++) {
-            ret.getGray(i*_width +j) = histogram[ret.getGray(i*_width +j)]; 
+            u_int8_t& gray = ret.getGray(i*_width +j);  
+            while (gray > interval) interval += tb; 
+            gray =  round(interval-tb/2); 
+            interval = t1 - 0.5; 
         }
     }
 

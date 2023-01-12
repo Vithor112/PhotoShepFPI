@@ -10,7 +10,7 @@
 #include "../stb/stb_image_write.h"
 
 Image::Image(std::string name){
-    _img_ptr = stbi_load("sky.jpeg", &_width, &_height, &_orig_channels, 0);
+    _img_ptr = stbi_load(name.c_str(), &_width, &_height, &_orig_channels, 0);
     this->_channels = _orig_channels; 
     if(_img_ptr == NULL) {
         printf("Error in loading the image %s \n", name.c_str());
@@ -19,7 +19,7 @@ Image::Image(std::string name){
 }
 
 Image::Image(std::string name, int channels){
-    _img_ptr = stbi_load("sky.jpeg", &_width, &_height, &_orig_channels, channels);
+    _img_ptr = stbi_load(name.c_str(), &_width, &_height, &_orig_channels, channels);
     this->_channels = channels; 
     if(_img_ptr == NULL) {
         printf("Error in loading the image\n");

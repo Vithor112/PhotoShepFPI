@@ -36,8 +36,7 @@ Image::Image(int width, int height, int channels){
 }
 
 Image Image::GetMirrorImageVertical(){
-    Image ret(_width, _height, _channels); 
-    unsigned char * img_ret = ret.getImagePtr();
+    unsigned char * img_ret = (unsigned char *) malloc(sizeof(unsigned char)*getImageSize());
     for (int i = 0; i < _height; i++) {
         for (int j = 0; j < _width; j++) {
             for (int k = 0; k < _channels; k++) {
@@ -45,28 +44,36 @@ Image Image::GetMirrorImageVertical(){
             }
         }
     }
-    return ret; 
+    free(_img_ptr);
+    _img_ptr = img_ret;
+    return *this; 
 }
 
 Image Image::GetMirrorImageHorizontal(){
-    Image ret(_width, _height, _channels); 
-    unsigned char * img_ret = ret.getImagePtr();
+    unsigned char * img_ret = (unsigned char *) malloc(sizeof(unsigned char)*getImageSize());
     for (int i = 0; i < _height; i++) {
         memcpy(img_ret + i*_width*_channels, _img_ptr + (_height-i - 1)*_width*_channels, sizeof(unsigned char) * _width * _channels);
     }
-    return ret; 
+    free(_img_ptr);
+    _img_ptr = img_ret; 
+    return *this; 
 }
 
 Image Image::GetGrayImage(int desired_channels){
-    Image ret(_width, _height, desired_channels); 
-    unsigned char * img_ret = ret.getImagePtr();
+    if (IsMonochromatic()){
+        return *this; 
+    }
+    unsigned char * img_ret = (unsigned char *) malloc(sizeof(unsigned char)*desired_channels*_width*_height);
     for (int i = 0; i < _height; i++) {
         for (int j = 0; j < _width; j++) {
             for (int k = 0; k < desired_channels; k++) 
                 img_ret[(i*_width + j)*desired_channels + k] = 0.114 * getBlue(i*_width + j) + 0.587 * getGreen(i*_width + j)  + 0.299 * getRed(i*_width + j); 
         }
     }
-    return ret; 
+    free(_img_ptr);
+    _img_ptr = img_ret; 
+    _channels = desired_channels; 
+    return *this; 
 }
 
 Image::~Image() {
@@ -92,7 +99,6 @@ Image& Image::operator=(Image other){
     return *this; 
 }   
 
-// TODO USE SMART POINTER
 int *Image::GetHistogram(){
     int *histogram = (int *) calloc(HISTOGRAM_SIZE,sizeof(int)); 
     for (int i = 0 ; i < _height; i++) {
@@ -108,7 +114,6 @@ Image Image::quantizeImage(int n){
     if (!IsMonochromatic()) {
         throw InvalidHue("quantizeImage: Image is not Monochromatic to quantize"); 
     }
-    Image ret = *this; 
     int *histogram = GetHistogram(); 
     int t1 = -1, t2 = -1; 
     for (int i = 0 ;  i < HISTOGRAM_SIZE; i++){
@@ -122,14 +127,14 @@ Image Image::quantizeImage(int n){
     double interval = t1 - 0.5;
     for (int i = 0 ; i < _height; i++) {
         for (int j = 0; j < _width; j++) {
-            u_int8_t& gray = ret.getGray(i*_width +j);  
+            u_int8_t& gray = getGray(i*_width +j);  
             while (gray > interval) interval += tb; 
             gray =  round(interval-tb/2); 
             interval = t1 - 0.5; 
         }
     }
-
-    return ret; 
+    free(histogram); 
+    return *this; 
 
 }
 
@@ -138,11 +143,11 @@ bool Image::IsMonochromatic(){
 }
 
 bool Image::SavePNGImg(std::string name){
-    return !stbi_write_png(name.append(".png").c_str(), _width, _height, _channels, _img_ptr, _width * _channels);
+    return !stbi_write_png(name.c_str(), _width, _height, _channels, _img_ptr, _width * _channels);
 } 
 
 bool Image::SaveJPEGImg(std::string name, int quality){
-    return !stbi_write_jpg(name.append(".jpeg").c_str(), _width, _height, _channels, _img_ptr, quality);
+    return !stbi_write_jpg(name.c_str(), _width, _height, _channels, _img_ptr, quality);
 }
 
 uint8_t &Image::getRed(int index){

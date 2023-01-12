@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QFileDialog>
+#include <QMessageBox> 
 
 
 
@@ -63,7 +64,15 @@ void MainWindow::on_grayBtn_clicked()
 
 void MainWindow::on_quantBtn_clicked()
 {
-    int tones = stoi(ui->lineEdit->text().toStdString()); 
+    int tones = 0;
+    try {
+        tones = stoi(ui->lineEdit->text().toStdString()); 
+    } catch (std::invalid_argument &e) {
+        QMessageBox msgBox(QMessageBox::Icon::Warning, "Invalid Argument", "You must inform a number of tones to quantize the image",
+        QMessageBox::Close, this); 
+        msgBox.exec(); 
+        return; 
+    }
     _changed->GetGrayImage(1);
     _changed->quantizeImage(tones); 
     _changed->SavePNGImg("tmp.png");

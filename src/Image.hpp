@@ -1,8 +1,11 @@
 #pragma once
 
 #include <string> 
+#include <QImage>
 
-#define HISTOGRAM_SIZE 256 
+
+
+#include "Kernel.hpp"
 
 class Image {
     public:
@@ -25,17 +28,26 @@ class Image {
         size_t getImageSize(); 
         size_t getImageDimensions();
         unsigned char *getImagePtr(); 
-
+        Image AdjustBrightness(int bias);
+        Image AdjustContrast(double gain);
+        Image Negative();
+        Image EqualizeHistogram();
+        Image RotateMinus();
+        Image RotatePlus(); 
+        Image ZoomOut(int sy, int sx);
+        Image ZoomIn();
+        Image Convolution(Kernel& image);
+        Image MatchHistogram(Image& image);
         Image GetMirrorImageVertical();
         Image GetMirrorImageHorizontal();
-        Image GetGrayImage(int desired_channels); 
-        int *GetHistogram(); 
+        Image GetGrayImage(int desired_channels);
+        QImage GetQImage();  
         bool IsMonochromatic();
         Image quantizeImage(int colors); 
         
     private:
         int _width, _height, _channels, _orig_channels;
         unsigned char *_img_ptr;
-
+        uint8_t roundPixel(int pixel); 
         void verifyBounds(int index); 
 };

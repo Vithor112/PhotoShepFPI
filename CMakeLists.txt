@@ -12,7 +12,8 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
 endif()
 
 
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Widgets Charts REQUIRED)
+
 
 
 FILE(GLOB_RECURSE MyCPPSources src/*.cpp)
@@ -23,4 +24,4 @@ add_executable(PhotoShep
 target_include_directories(PhotoShep PUBLIC stb)
 
 
-target_link_libraries(PhotoShep Qt5::Widgets)
+target_link_libraries(PhotoShep Qt5::Widgets Qt5::Charts)
